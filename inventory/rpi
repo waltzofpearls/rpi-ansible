@@ -2,7 +2,7 @@
 prometheus.rpi.topbass.studio
 grafana.rpi.topbass.studio
 sensehat.rpi.topbass.studio
-camera.rpi.topbass.studio
+dogwatchdog.rpi.topbass.studio
 
 [armv6]
 grafana.rpi.topbass.studio
@@ -10,7 +10,7 @@ grafana.rpi.topbass.studio
 [armv7]
 prometheus.rpi.topbass.studio
 sensehat.rpi.topbass.studio
-camera.rpi.topbass.studio
+dogwatchdog.rpi.topbass.studio
 
 [prometheus]
 prometheus.rpi.topbass.studio
@@ -21,5 +21,5 @@ grafana.rpi.topbass.studio
 [sensehat]
 sensehat.rpi.topbass.studio
 
-[camera]
-camera.rpi.topbass.studio
+[dogwatchdog]
+dogwatchdog.rpi.topbass.studio

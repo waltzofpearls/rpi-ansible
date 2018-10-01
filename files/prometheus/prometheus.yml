@@ -40,9 +40,9 @@ scrape_configs:
     static_configs:
       - targets: ['sensehat.rpi.topbass.studio:9100']
 
-  - job_name: 'camera.node_exporter'
+  - job_name: 'dogwatchdog.node_exporter'
     static_configs:
-      - targets: ['camera.rpi.topbass.studio:9100']
+      - targets: ['dogwatchdog.rpi.topbass.studio:9100']
 
   - job_name: 'sensehat_exporter'
     metrics_path: /
