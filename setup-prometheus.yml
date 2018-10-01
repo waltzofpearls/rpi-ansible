@@ -1,0 +1,41 @@
+---
+- hosts: prometheus
+  gather_facts: false
+
+  tasks:
+  - name: Ensure prometheus folder exists
+    file:
+      path: $HOME/prometheus
+      state: directory
+
+  - name: Download ARMv7 Prometheus
+    unarchive:
+      src: https://github.com/prometheus/prometheus/releases/download/v2.4.2/prometheus-2.4.2.linux-armv7.tar.gz
+      dest: $HOME/prometheus
+      extra_opts: [--strip-components=1]
+      remote_src: yes
+
+  - name: Copy Prometheus Dockerfile and config file
+    copy:
+      src: "{{ item }}"
+      dest: $HOME/prometheus/
+      owner: pi
+      mode: 0644
+    with_fileglob:
+      - prometheus/*
+
+  - name: Build Prometheus docker image
+    docker_image:
+       path: $HOME/prometheus
+       name: prometheus-rpi
+       #force: yes
+
+  - name: Run Prometheus as a docker container
+    docker_container:
+      name: prometheus-rpi
+      image: prometheus-rpi
+      published_ports:
+        - 9090:9090
+      restart_policy: always
+      volumes:
+        - /home/pi/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml

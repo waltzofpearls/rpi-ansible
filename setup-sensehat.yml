@@ -1,0 +1,20 @@
+---
+- name: Set up Sense HAT pi
+  hosts: sensehat
+  become: true
+  gather_facts: false
+
+  tasks:
+  - name: Install Prometheus python client
+    pip:
+      executable: pip3
+      name: prometheus_client
+
+  - name: Install Sense HAT exporter
+    copy: src=sensehat/sensehat_exporter.py dest=/usr/local/bin/sensehat_exporter.py
+
+  - name: Install Sense HAT exporter systemd unit file
+    copy: src=sensehat/sensehat_exporter.service dest=/etc/systemd/system/sensehat_exporter.service
+
+  - name: Make sure Sense HAT exporter is running
+    systemd: state=started name=sensehat_exporter enabled=yes

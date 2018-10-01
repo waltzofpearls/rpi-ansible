@@ -1,0 +1,68 @@
+---
+- name: Install dependencies for ARMv6 pi's
+  hosts: armv6
+  become: true
+  gather_facts: false
+
+  tasks:
+  - name: Install ARMv6 node exporter
+    unarchive:
+      src: https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-armv6.tar.gz
+      dest: /usr/local/bin
+      extra_opts: [--strip-components=1]
+      remote_src: yes
+
+- name: Install dependencies for ARMv7 pi's
+  hosts: armv7
+  become: true
+  gather_facts: false
+
+  tasks:
+  - name: Install ARMv7 node exporter
+    unarchive:
+      src: https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-armv7.tar.gz
+      dest: /usr/local/bin
+      extra_opts: [--strip-components=1]
+      remote_src: yes
+
+- name: Set up general packages and dependencies for all pi's
+  hosts: everything
+  become: true
+  gather_facts: false
+
+  tasks:
+  - name: Update apt repositories cache and install packages
+    apt:
+      name: "{{ packages }}"
+      update_cache: yes
+    vars:
+      packages:
+      - git
+      - vim
+      - python-pip
+      - python3-pip
+
+  - name: Install node exporter systemd unit file
+    copy: src=node_exporter.service dest=/etc/systemd/system/node_exporter.service
+
+  - name: Make sure node exporter is running
+    systemd: state=started name=node_exporter enabled=yes
+
+  - name: Download docker installer
+    get_url: url=https://get.docker.com dest=/tmp/docker_installer.sh mode=0755
+
+  - name: Execute the docker_installer.sh
+    shell: /tmp/docker_installer.sh
+
+  - name: Remove the docker_installer.sh
+    file: path=/tmp/docker_installer.sh state=absent
+
+  - name: Add pi user to docker group
+    user:
+      name: pi
+      groups: docker
+      append: yes
+
+  - name: Install docker python module
+    pip:
+      name: docker

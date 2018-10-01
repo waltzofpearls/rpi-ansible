@@ -1,0 +1,25 @@
+---
+- name: Set up Grafana pi
+  hosts: grafana
+  gather_facts: false
+
+  tasks:
+  - name: Copy Grafana Dockerfile
+    copy:
+      src: grafana/Dockerfile
+      dest: $HOME/grafana/
+      owner: pi
+      mode: 0644
+
+  - name: Build Grafana docker image
+    docker_image:
+       path: $HOME/grafana
+       name: grafana-rpi
+
+  - name: Run Grafana as a docker container
+    docker_container:
+      name: grafana-rpi
+      image: grafana-rpi
+      published_ports:
+        - 3000:3000
+      restart_policy: always

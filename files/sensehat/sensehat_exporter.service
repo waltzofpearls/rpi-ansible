@@ -1,0 +1,9 @@
+[Unit]
+Description=SenseHATExporter
+
+[Service]
+TimeoutStartSec=0
+ExecStart=/usr/bin/python3 /usr/local/bin/sensehat_exporter.py
+
+[Install]
+WantedBy=multi-user.target
