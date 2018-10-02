@@ -9,11 +9,12 @@ gauge_humidity = Gauge('sensehat_humidity', 'Humidity reading from Sense HAT')
 sense = SenseHat()
 sense.clear()
 
-gauge_pressure.set(sense.get_pressure())
-gauge_temperature.set(sense.get_temperature())
-gauge_humidity.set(sense.get_humidity())
-
 if __name__ == '__main__':
     start_http_server(8000)
+
     while True:
+        gauge_pressure.set(sense.get_pressure())
+        gauge_temperature.set(sense.get_temperature_from_pressure())
+        gauge_humidity.set(sense.get_humidity())
+
         time.sleep(1)
