@@ -28,7 +28,6 @@
     docker_image:
        path: $HOME/prometheus
        name: prometheus-rpi
-       #force: yes
 
   - name: Run Prometheus as a docker container
     docker_container:
