@@ -5,10 +5,14 @@
   gather_facts: false
 
   tasks:
-  - name: Install Prometheus python client
+  - name: Install python packages through pip3
     pip:
       executable: pip3
-      name: prometheus_client
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - prometheus_client
+      - requests
 
   - name: Install Sense HAT exporter
     copy: src=sensehat/sensehat_exporter.py dest=/usr/local/bin/sensehat_exporter.py
