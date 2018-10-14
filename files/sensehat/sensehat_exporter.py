@@ -6,6 +6,7 @@ import time
 
 from pathlib import Path
 from prometheus_client import start_http_server, Gauge
+from requests.exceptions import RequestException
 from sense_hat import SenseHat
 
 
@@ -15,10 +16,60 @@ def get_openweathermap_creds():
         return json.load(f)
 
 def get_openweathermap_data(creds):
+    '''
+    An example of the json returned from current weather endpoint
+    {
+        "coord": {
+            "lon": -122.96,
+            "lat": 49.21
+        },
+        "weather": [{
+            "id": 800,
+            "main": "Clear",
+            "description": "clear sky",
+            "icon": "01n"
+        }],
+        "base": "stations",
+        "main": {
+            "temp": 9.05,
+            "pressure": 1027,
+            "humidity": 87,
+            "temp_min": 7,
+            "temp_max": 11
+        },
+        "visibility": 16093,
+        "wind": {
+            "speed": 2.1,
+            "deg": 330,
+            "gust": 5.1
+        },
+        "clouds": {
+            "all": 1
+        },
+        "dt": 1539498900,
+        "sys": {
+            "type": 1,
+            "id": 2928,
+            "message": 0.0042,
+            "country": "CA",
+            "sunrise": 1539527509,
+            "sunset": 1539566565
+        },
+        "id": 7798683,
+        "name": "New Westminster",
+        "cod": 200
+    }
+    '''
     url = 'https://api.openweathermap.org/data/2.5/weather?appid={}&units=metric&lat={}&lon={}'
-    response = requests.get(url.format(creds['appid'], creds['lat'], creds['lon']))
-    response.raise_for_status()
-    return json.loads(response.text)
+    try:
+        response = requests.get(url.format(creds['appid'], creds['lat'], creds['lon']),
+                                headers={'Connection':'close'})
+        response.raise_for_status()
+        response.close()
+        return json.loads(response.text)
+    except RequestException as e:
+        print(e)
+        return {'main': {'pressure': 0, 'temp': 0, 'humidity': 0}}
 
 def get_cpu_temperature():
     output = subprocess.check_output("vcgencmd measure_temp", shell=True)
