@@ -1117,6 +1117,7 @@
       }
     }
   ],
+  "refresh": "1m",
   "schemaVersion": 16,
   "style": "dark",
   "tags": [],
@@ -1124,7 +1125,7 @@
     "list": []
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -1155,5 +1156,5 @@
   "timezone": "",
   "title": "Misty Mountain",
   "uid": "xi2BhUgRz",
-  "version": 13
+  "version": 15
 }
