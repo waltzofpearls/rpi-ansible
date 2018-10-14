@@ -2,6 +2,7 @@ import json
 import re
 import requests
 import subprocess
+import sys
 import time
 
 from pathlib import Path
@@ -69,7 +70,8 @@ def get_openweathermap_data(creds):
         return json.loads(response.text)
     except RequestException as e:
         print(e)
-        return {'main': {'pressure': 0, 'temp': 0, 'humidity': 0}}
+        sys.stdout.flush()
+        return None
 
 def get_cpu_temperature():
     output = subprocess.check_output("vcgencmd measure_temp", shell=True)
@@ -112,9 +114,10 @@ def main():
         calibrated_temperature.set(calibrated_temp)
 
         owm = get_openweathermap_data(creds)
-        openweathermap_pressure.set(owm['main']['pressure'])
-        openweathermap_temperature.set(owm['main']['temp'])
-        openweathermap_humidity.set(owm['main']['humidity'])
+        if owm is not None:
+            openweathermap_pressure.set(owm['main']['pressure'])
+            openweathermap_temperature.set(owm['main']['temp'])
+            openweathermap_humidity.set(owm['main']['humidity'])
 
         time.sleep(20)
 
