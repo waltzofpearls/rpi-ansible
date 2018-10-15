@@ -14,6 +14,7 @@ sys.path.append('/usr/lib/python3/dist-packages/Fit')
 
 from Fit import Conversions
 from pathlib import Path
+from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
 
 logger = logging.getLogger()
 
@@ -163,6 +164,14 @@ class Download():
             time.sleep(1)
         return data
 
+    def get_weight_in_hours(self, hours):
+        ms_in_hours = int(3600 * hours * 1000)
+        end = Conversions.dt_to_epoch_ms(datetime.datetime.now())
+        start = end - ms_in_hours
+        data = self.get_weight_chunk(start, end)
+        time.sleep(1)
+        return data
+
     def get_sleep_day(self, directory, date):
         filename = directory + '/sleep_' + str(date) + '.json'
         if not os.path.isfile(filename):
@@ -209,6 +218,34 @@ class Download():
         return data
 
 
+class Metrics():
+    def __init__(self):
+        self.registry = CollectorRegistry()
+        self.pushgateway = 'localhost:9091'
+        self.job_name = 'healthstats'
+
+    def weight(self, data):
+        if len(data) == 0:
+            return
+
+        weight = Gauge('weight', 'Body weight in KG', registry=self.registry)
+        body_fat = Gauge('body_fat', 'Body fat in %', registry=self.registry)
+        bone_mass = Gauge('bone_mass', 'Bone mass in KG', registry=self.registry)
+        bmi = Gauge('bmi', 'BMI', registry=self.registry)
+        body_water = Gauge('body_water', 'Body water in %', registry=self.registry)
+        muscle_mass = Gauge('muscle_mass', 'Muscle mass in KG', registry=self.registry)
+
+        weight.set(data[0]['weight'] / 1000.0)
+        body_fat.set(data[0]['bodyFat'])
+        bone_mass.set(data[0]['boneMass'] / 1000.0)
+        bmi.set(data[0]['bmi'])
+        body_water.set(data[0]['bodyWater'])
+        muscle_mass.set(data[0]['muscleMass'] / 1000.0)
+
+    def publish(self):
+        push_to_gateway(self.pushgateway, job=self.job_name, registry=self.registry)
+
+
 def main(argv):
     days = 1
     date = datetime.datetime.now().date() - datetime.timedelta(days)
@@ -229,14 +266,29 @@ def main(argv):
         creds = json.load(f)
 
     download = Download()
+    metrics = Metrics()
+
+    print('Logging in to garmin connect ...')
     download.login(creds['u'], creds['p'])
 
-    download.get_monitoring(date, days)
-    download.unzip_files(monitoring_path)
+    # print('Saving monitoring data to: {} ...'.format(monitoring_path))
+    # download.get_monitoring(date, days)
+    # download.unzip_files(monitoring_path)
 
-    download.get_sleep(sleep_path, date, days)
-    download.save_json_file(weight_path + '/weight_' + str(int(time.time())), download.get_weight())
-    download.save_json_file(rhr_path + '/rhr_' + str(int(time.time())), download.get_rhr())
+    # print('Saving sleep data to: {} ...'.format(sleep_path))
+    # download.get_sleep(sleep_path, date, days)
+
+    print('Downloading weight data ...')
+    weight = download.get_weight_in_hours(24)
+    print('Generating weight metrics ...')
+    metrics.weight(weight)
+
+    # print('Saving resting heart rate data to: {} ...'.format(rhr_path))
+    # rhr = download.get_rhr()
+    # download.save_json_file(rhr_path + '/rhr_' + str(int(time.time())), rhr)
+
+    print('Publishing metrics to Pushgateway ...')
+    metrics.publish()
 
 
 if __name__ == '__main__':

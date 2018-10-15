@@ -48,3 +48,7 @@ scrape_configs:
     metrics_path: /
     static_configs:
       - targets: ['sensehat.rpi.topbass.studio:8000']
+
+  - job_name: 'pushgateway'
+    static_configs:
+      - targets: ['dogwatchdog.rpi.topbass.studio:9091']
