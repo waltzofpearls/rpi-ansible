@@ -23,3 +23,5 @@
       published_ports:
         - 3000:3000
       restart_policy: always
+      volumes:
+        - /home/pi/grafana:/var/lib/grafana

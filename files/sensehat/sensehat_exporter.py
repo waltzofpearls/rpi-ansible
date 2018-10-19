@@ -74,14 +74,18 @@ def get_openweathermap_data(creds):
         return None
 
 def get_cpu_temperature():
-    output = subprocess.check_output("vcgencmd measure_temp", shell=True)
+    output = subprocess.check_output('cat /sys/class/thermal/thermal_zone0/temp', shell=True)
+    return int(output) / 1000
+
+def get_gpu_temperature():
+    output = subprocess.check_output('/opt/vc/bin/vcgencmd measure_temp', shell=True)
     matches = re.match(b"^.+=(.+)'C$", output)
     if matches:
         return float(matches.groups()[0])
     return 0
 
 def get_calibrated_temperature(temperature, cpu_temperature):
-    factor = 2.8146
+    factor = 1.3540
     return temperature - ((cpu_temperature - temperature) / factor)
 
 def main():
@@ -89,6 +93,7 @@ def main():
     sensehat_temperature = Gauge('sensehat_temperature', 'Temperature reading from Sense HAT')
     sensehat_humidity = Gauge('sensehat_humidity', 'Humidity reading from Sense HAT')
     cpu_temperature = Gauge('cpu_temperature', 'Temperature reading from Raspberry Pi\'s CPU')
+    gpu_temperature = Gauge('gpu_temperature', 'Temperature reading from Raspberry Pi\'s GPU')
     calibrated_temperature = Gauge('calibrated_temperature', 'Calibrated temperature')
     openweathermap_pressure = Gauge('openweathermap_pressure', 'Pressure reading from OpenWeatherMap API')
     openweathermap_temperature = Gauge('openweathermap_temperature', 'Temperature reading from OpenWeatherMap API')
@@ -108,7 +113,9 @@ def main():
         sensehat_humidity.set(sensehat.get_humidity())
 
         cpu_temp = get_cpu_temperature()
+        gpu_temp = get_gpu_temperature()
         cpu_temperature.set(cpu_temp)
+        gpu_temperature.set(gpu_temp)
 
         calibrated_temp = get_calibrated_temperature(temp, cpu_temp)
         calibrated_temperature.set(calibrated_temp)

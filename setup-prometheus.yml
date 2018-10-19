@@ -37,4 +37,4 @@
         - 9090:9090
       restart_policy: always
       volumes:
-        - /home/pi/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+        - /home/pi/prometheus:/prometheus

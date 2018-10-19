@@ -26,7 +26,7 @@
       remote_src: yes
 
 - name: Set up general packages and dependencies for all pi's
-  hosts: everything
+  hosts: all
   become: true
   gather_facts: false
 

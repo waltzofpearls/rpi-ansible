@@ -1,60 +1,68 @@
 ---
-- hosts: dogwatchdog
+- hosts: healthstats
   become: yes
   gather_facts: false
 
   tasks:
-#  - name: Ensure pushgateway folder exists
-#    file:
-#      path: $HOME/pushgateway
-#      state: directory
-#
-#  - name: Download ARMv7 Pushgateway
-#    unarchive:
-#      src: https://github.com/prometheus/pushgateway/releases/download/v0.5.2/pushgateway-0.5.2.linux-armv7.tar.gz
-#      dest: $HOME/pushgateway
-#      extra_opts: [--strip-components=1]
-#      remote_src: yes
-#
-#  - name: Copy Pushgateway Dockerfile and config file
-#    copy:
-#      src: pushgateway/Dockerfile
-#      dest: $HOME/pushgateway/
-#      owner: pi
-#      mode: 0644
-#
-#  - name: Build Pushgateway docker image
-#    docker_image:
-#       path: $HOME/pushgateway
-#       name: pushgateway-rpi
-#
-#  - name: Run Pushgateway as a docker container
-#    docker_container:
-#      name: pushgateway-rpi
-#      image: pushgateway-rpi
-#      published_ports:
-#        - 9091:9091
-#      restart_policy: always
-#
-#  - name: Install python packages through pip3
-#    pip:
-#      executable: pip3
-#      name: "{{ packages }}"
-#    vars:
-#      packages:
-#      - prometheus_client
-#      - cfscrape
-#      - requests
-#
-#  - name: Install Node.js through apt
-#    apt:
-#      name: nodejs
-#      update_cache: yes
+  - name: Ensure pushgateway folder exists
+    file:
+      path: $HOME/pushgateway
+      state: directory
+
+  - name: Download ARMv7 Pushgateway
+    unarchive:
+      src: https://github.com/prometheus/pushgateway/releases/download/v0.5.2/pushgateway-0.5.2.linux-armv7.tar.gz
+      dest: $HOME/pushgateway
+      extra_opts: [--strip-components=1]
+      remote_src: yes
+
+  - name: Copy Pushgateway Dockerfile and config file
+    copy:
+      src: pushgateway/Dockerfile
+      dest: $HOME/pushgateway/
+      owner: pi
+      mode: 0644
+
+  - name: Build Pushgateway docker image
+    docker_image:
+       path: $HOME/pushgateway
+       name: pushgateway-rpi
+
+  - name: Run Pushgateway as a docker container
+    docker_container:
+      name: pushgateway-rpi
+      image: pushgateway-rpi
+      published_ports:
+        - 9091:9091
+      restart_policy: always
+
+  - name: Install python packages through pip3
+    pip:
+      executable: pip3
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - cfscrape
+      - prometheus_client
+      - pytz
+      - requests
+
+  - name: Install Node.js through apt
+    apt:
+      name: nodejs
+      update_cache: yes
+
+  - name: Install health stats collector
+    copy: src=healthstats dest=/root
 
   - name: Git clone Fit lib
     git:
       repo: https://github.com/tcgoetz/Fit.git
-      dest: /usr/lib/python3/dist-packages/Fit
+      dest: /root/healthstats/Fit
 
-  - name: Install health stats collector
-    copy: src=healthstats/healthstats_collector.py dest=/usr/local/bin/healthstats_collector.py
+  - name: Ensure a job that runs healthstats collector every 2 hours
+    cron:
+      name: "healthstats collector"
+      minute: "0"
+      hour: "*/2"
+      job: "PYTHONPATH=$PYTHONPATH:/root/healthstats/Fit /usr/bin/python3 /root/healthstats/collector.py"

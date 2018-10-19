@@ -1,8 +1,8 @@
 import cfscrape
 import datetime
 import json
-import logging
 import os
+import pytz
 import re
 import requests
 import sys
@@ -10,13 +10,7 @@ import tempfile
 import time
 import zipfile
 
-sys.path.append('/usr/lib/python3/dist-packages/Fit')
-
 from Fit import Conversions
-from pathlib import Path
-from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
-
-logger = logging.getLogger()
 
 
 class Download():
@@ -39,12 +33,16 @@ class Download():
     garmin_connect_rhr_url = garmin_connect_modern_proxy_url + '/userstats-service/wellness/daily'
     garmin_connect_weight_url = garmin_connect_personal_info_url + '/weightWithOutbound/filterByDay'
 
-    def __init__(self):
+    def __init__(self, timezone='UTC'):
         self.temp_dir = tempfile.mkdtemp()
         self.session = cfscrape.create_scraper(
             sess=requests.session(),
             delay=15
         )
+        self.timezone = timezone
+
+    def to_localtime(self, datetime_in_utc):
+        return pytz.timezone(self.timezone).fromutc(datetime_in_utc)
 
     def get(self, url, params={}):
         response = self.session.get(url, params=params)
@@ -127,19 +125,14 @@ class Download():
                 files_zip.extractall(outdir)
                 files_zip.close()
 
-    def get_monitoring_day(self, date):
-        logger.info("get_monitoring_day: %s", str(date))
-        response = self.get(self.garmin_connect_download_daily_url + '/' + date.strftime("%Y-%m-%d"))
+    def get_monitoring(self):
+        localtime = self.to_localtime(datetime.datetime.now())
+        date = localtime.strftime("%Y-%m-%d")
+        url = self.garmin_connect_download_daily_url + '/' + date
+        response = self.get(url)
         if response:
-            self.save_binary_file(self.temp_dir + '/' + str(date) + '.zip', response)
-
-    def get_monitoring(self, date, days):
-        logger.info("get_monitoring: %s : %d", str(date), days)
-        for day in range(0, days):
-            day_date = date + datetime.timedelta(day)
-            self.get_monitoring_day(day_date)
-            # pause for a second between every page access
-            time.sleep(1)
+            zipfile = self.temp_dir + '/' + str(date) + '.zip'
+            self.save_binary_file(zipfile, response)
 
     def get_weight_chunk(self, start, end):
         params = {
@@ -149,21 +142,6 @@ class Download():
         response = self.get(self.garmin_connect_weight_url, params)
         return response.json()
 
-    def get_weight(self):
-        data = []
-        chunk_size = int((86400 * 365) * 1000)
-        end = Conversions.dt_to_epoch_ms(datetime.datetime.now())
-        while True:
-            start = end - chunk_size
-            chunk_data = self.get_weight_chunk(start, end)
-            if len(chunk_data) <= 1:
-                break
-            data.extend(chunk_data)
-            end -= chunk_size
-            # pause for a second between every page access
-            time.sleep(1)
-        return data
-
     def get_weight_in_hours(self, hours):
         ms_in_hours = int(3600 * hours * 1000)
         end = Conversions.dt_to_epoch_ms(datetime.datetime.now())
@@ -172,124 +150,34 @@ class Download():
         time.sleep(1)
         return data
 
-    def get_sleep_day(self, directory, date):
-        filename = directory + '/sleep_' + str(date) + '.json'
-        if not os.path.isfile(filename):
-            params = {'date': date.strftime("%Y-%m-%d")}
-            response = self.get(self.garmin_connect_sleep_daily_url + '/' + self.display_name, params)
-            self.save_binary_file(filename, response)
-
-    def get_sleep(self, directory, date, days):
-        for day in range(0, days):
-            day_date = date + datetime.timedelta(day)
-            self.get_sleep_day(directory, day_date)
-            # pause for a second between every page access
-            time.sleep(1)
+    def get_sleep(self):
+        localtime = self.to_localtime(datetime.datetime.now())
+        date = localtime.strftime("%Y-%m-%d")
+        url = self.garmin_connect_sleep_daily_url + '/' + self.display_name
+        params = {'date': date}
+        response = self.get(url, params)
+        time.sleep(1)
+        return response.json()
 
     def get_rhr_chunk(self, start, end):
-        start_str = start.strftime("%Y-%m-%d")
-        end_str = end.strftime("%Y-%m-%d")
+        start_str = self.to_localtime(start).strftime("%Y-%m-%d")
+        end_str = self.to_localtime(end).strftime("%Y-%m-%d")
         params = {
             'fromDate' : start_str,
             'untilDate' : end_str,
             'metricId' : 60
         }
         response = self.get(self.garmin_connect_rhr_url + '/' + self.display_name, params)
-        json_data = response.json()
+        data = response.json()
         try:
-            rhr_data = json_data['allMetrics']['metricsMap']['WELLNESS_RESTING_HEART_RATE']
+            rhr_data = data['allMetrics']['metricsMap']['WELLNESS_RESTING_HEART_RATE']
             return [entry for entry in rhr_data if entry['value'] is not None]
         except Exception:
-            print("get_rhr_chunk: unexpected format - ", repr(json_data))
+            print("get_rhr_chunk: unexpected format - ", repr(data))
 
-    def get_rhr(self):
-        data = []
-        chunk_size = datetime.timedelta(30)
+    def get_rhr_in_days(self, days):
         end = datetime.datetime.now()
-        while True:
-            start = end - chunk_size
-            chunk_data = self.get_rhr_chunk(start, end)
-            if chunk_data is None or len(chunk_data) == 0:
-                break
-            data.extend(chunk_data)
-            end -= chunk_size
-            # pause for a second between every page access
-            time.sleep(1)
+        start = end - datetime.timedelta(days)
+        data = self.get_rhr_chunk(start, end)
+        time.sleep(1)
         return data
-
-
-class Metrics():
-    def __init__(self):
-        self.registry = CollectorRegistry()
-        self.pushgateway = 'localhost:9091'
-        self.job_name = 'healthstats'
-
-    def weight(self, data):
-        if len(data) == 0:
-            return
-
-        weight = Gauge('weight', 'Body weight in KG', registry=self.registry)
-        body_fat = Gauge('body_fat', 'Body fat in %', registry=self.registry)
-        bone_mass = Gauge('bone_mass', 'Bone mass in KG', registry=self.registry)
-        bmi = Gauge('bmi', 'BMI', registry=self.registry)
-        body_water = Gauge('body_water', 'Body water in %', registry=self.registry)
-        muscle_mass = Gauge('muscle_mass', 'Muscle mass in KG', registry=self.registry)
-
-        weight.set(data[0]['weight'] / 1000.0)
-        body_fat.set(data[0]['bodyFat'])
-        bone_mass.set(data[0]['boneMass'] / 1000.0)
-        bmi.set(data[0]['bmi'])
-        body_water.set(data[0]['bodyWater'])
-        muscle_mass.set(data[0]['muscleMass'] / 1000.0)
-
-    def publish(self):
-        push_to_gateway(self.pushgateway, job=self.job_name, registry=self.registry)
-
-
-def main(argv):
-    days = 1
-    date = datetime.datetime.now().date() - datetime.timedelta(days)
-
-    temp = tempfile.mkdtemp()
-    monitoring_path = temp + "/monitoring"
-    sleep_path = temp + "/sleep"
-    weight_path = temp + "/weight"
-    rhr_path = temp + "/rhr"
-
-    Path(monitoring_path).mkdir(parents=True, exist_ok=True)
-    Path(sleep_path).mkdir(parents=True, exist_ok=True)
-    Path(weight_path).mkdir(parents=True, exist_ok=True)
-    Path(rhr_path).mkdir(parents=True, exist_ok=True)
-
-    home = str(Path.home())
-    with open(home + '/.garmin') as f:
-        creds = json.load(f)
-
-    download = Download()
-    metrics = Metrics()
-
-    print('Logging in to garmin connect ...')
-    download.login(creds['u'], creds['p'])
-
-    # print('Saving monitoring data to: {} ...'.format(monitoring_path))
-    # download.get_monitoring(date, days)
-    # download.unzip_files(monitoring_path)
-
-    # print('Saving sleep data to: {} ...'.format(sleep_path))
-    # download.get_sleep(sleep_path, date, days)
-
-    print('Downloading weight data ...')
-    weight = download.get_weight_in_hours(24)
-    print('Generating weight metrics ...')
-    metrics.weight(weight)
-
-    # print('Saving resting heart rate data to: {} ...'.format(rhr_path))
-    # rhr = download.get_rhr()
-    # download.save_json_file(rhr_path + '/rhr_' + str(int(time.time())), rhr)
-
-    print('Publishing metrics to Pushgateway ...')
-    metrics.publish()
-
-
-if __name__ == '__main__':
-    main(sys.argv[1:])
