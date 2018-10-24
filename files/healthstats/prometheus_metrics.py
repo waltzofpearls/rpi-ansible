@@ -17,11 +17,12 @@ class PrometheusMetrics():
         self._resting_heart_rate(data)
 
         if 'durationInMilliseconds' in data \
-            and int(data['durationInMilliseconds']) >= 43200000:
-            # only sync when the current day past 12 hours
-            # 43200000 = 3600 * 12 * 1000
+            and int(data['durationInMilliseconds']) >= 36000000:
+            # only sync when the current day past 10 hours
+            # 43200000 = 3600 * 10 * 1000
             self._steps(data)
             self._floors(data)
+            self._calories(data)
 
         if 'durationInMilliseconds' in data \
             and int(data['durationInMilliseconds']) >= 64800000:
@@ -67,24 +68,40 @@ class PrometheusMetrics():
     def _steps(self, data):
         if data.get('totalSteps') is None \
             or data.get('dailyStepGoal') is None \
-            or data.get('totalKilocalories') is None \
             or data.get('totalDistanceMeters') is None \
+            or data.get('activeSeconds') is None \
             or data.get('sedentarySeconds') is None:
             return
 
         # create metrics
         steps = self.gauge('steps', 'Total steps')
         steps_daily_goal = self.gauge('steps_daily_goal', 'Daily step goal')
-        calories = self.gauge('calories', 'Total calories')
         distance_meters = self.gauge('distance_meters', 'Total distance in meters')
+        active_seconds = self.gauge('active_seconds', 'Seconds in movement')
         sedentary_seconds = self.gauge('sedentary_seconds', 'Seconds in sedentary position')
 
         # set metrics values
         steps.set(data['totalSteps'])
         steps_daily_goal.set(data['dailyStepGoal'])
-        calories.set(data['totalKilocalories'])
         distance_meters.set(data['totalDistanceMeters'])
+        active_seconds.set(data['activeSeconds'])
         sedentary_seconds.set(data['sedentarySeconds'])
+
+    def _calories(self, data):
+        if data.get('totalKilocalories') is None \
+            or data.get('activeKilocalories') is None \
+            or data.get('bmrKilocalories') is None:
+            return
+
+        # create metrics
+        calories = self.gauge('calories', 'Total calories')
+        calories_active = self.gauge('calories_active', 'Active calories')
+        calories_resting = self.gauge('calories_resting', 'Resting calories')
+
+        # set metrics values
+        calories.set(data['totalKilocalories'])
+        calories_active.set(data['activeKilocalories'])
+        calories_resting.set(data['bmrKilocalories'])
 
     def _intensity_minutes(self, data):
         if data.get('moderateIntensityMinutes') is None \
