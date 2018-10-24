@@ -1,47 +1,44 @@
 import json
+import logging
+import sys
 import tempfile
+import time
 
 from pathlib import Path
 
-from download import Download
-from metrics import Metrics
+from garmin_connect import GarminConnect
+from prometheus_metrics import PrometheusMetrics
 
 
 def main():
-    temp = tempfile.mkdtemp()
-    monitoring_path = temp + "/monitoring"
-    Path(monitoring_path).mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(stream=sys.stdout,
+                        level=logging.DEBUG,
+                        format='%(asctime)s [%(name)s:%(levelname)s] %(message)s')
+    logger = logging.getLogger()
 
     home = str(Path.home())
     with open(home + '/.garmin') as f:
         creds = json.load(f)
 
-    download = Download(creds['tz'])
-    metrics = Metrics()
+    connect = GarminConnect(creds['tz'])
+    metrics = PrometheusMetrics()
 
-    print('Logging in to garmin connect ...')
-    download.login(creds['u'], creds['p'])
+    logger.info('Logging in to garmin connect ...')
+    connect.login(creds['u'], creds['p'])
 
-    # print('Downloading monitoring data to: {} ...'.format(monitoring_path))
-    # download.get_monitoring()
-    # download.unzip_files(monitoring_path)
+    logger.info('Downloading summary data ...')
+    data = connect.get_summary()
+    logger.info('Generating weight, resting heart rate, steps, floor and calorie metrics ...')
+    metrics.summary(data)
 
-    print('Downloading sleep data ...')
-    data = download.get_sleep()
-    print('Generating sleep metrics ...')
+    time.sleep(1)
+
+    logger.info('Downloading sleep data ...')
+    data = connect.get_sleep()
+    logger.info('Generating sleep metrics ...')
     metrics.sleep(data)
 
-    print('Downloading weight data ...')
-    data = download.get_weight_in_hours(24)
-    print('Generating weight metrics ...')
-    metrics.weight(data)
-
-    print('Downloading resting heart rate data ...')
-    data = download.get_rhr_in_days(1)
-    print('Generating resting heart rate metrics ...')
-    metrics.resting_heart_rate(data)
-
-    print('Publishing metrics to Pushgateway ...')
+    logger.info('Publishing metrics to Pushgateway ...')
     metrics.publish()
 
 

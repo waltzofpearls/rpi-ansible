@@ -36,33 +36,24 @@
         - 9091:9091
       restart_policy: always
 
-  - name: Install python packages through pip3
-    pip:
-      executable: pip3
-      name: "{{ packages }}"
-    vars:
-      packages:
-      - cfscrape
-      - prometheus_client
-      - pytz
-      - requests
+  - name: Copy health stats collector
+    copy: src=healthstats dest=$HOME
 
-  - name: Install Node.js through apt
-    apt:
-      name: nodejs
-      update_cache: yes
+  - name: Build health stats docker image
+    docker_image:
+      path: $HOME/healthstats
+      name: healthstats-rpi
+      force: yes
 
-  - name: Install health stats collector
-    copy: src=healthstats dest=/root
-
-  - name: Git clone Fit lib
-    git:
-      repo: https://github.com/tcgoetz/Fit.git
-      dest: /root/healthstats/Fit
-
-  - name: Ensure a job that runs healthstats collector every 2 hours
-    cron:
-      name: "healthstats collector"
-      minute: "0"
-      hour: "*/2"
-      job: "PYTHONPATH=$PYTHONPATH:/root/healthstats/Fit /usr/bin/python3 /root/healthstats/collector.py"
+  - name: Run health stats as a docker container
+    docker_container:
+      name: healthstats-rpi
+      image: healthstats-rpi
+      restart_policy: always
+      volumes:
+        - /root/.garmin:/root/.garmin
+      env:
+        PYTHONPATH: /healthstats/Fit
+        PUSHGATEWAY: healthstats.rpi.topbass.studio:9091
+        JOB_NAME: healthstats
+        TIMEZONE: America/Vancouver
