@@ -14,7 +14,7 @@ class PrometheusMetrics():
 
     def summary(self, data):
         self._weight(data)
-        self._resting_heart_rate(data)
+        self._heart_rate(data)
 
         if 'durationInMilliseconds' in data \
             and int(data['durationInMilliseconds']) >= 36000000:
@@ -55,15 +55,23 @@ class PrometheusMetrics():
         weight_body_water.set(data['bodyWater'])
         weight_muscle_mass.set(data['muscleMass'] / 1000.0)
 
-    def _resting_heart_rate(self, data):
-        if data.get('restingHeartRate') is None:
+    def _heart_rate(self, data):
+        if data.get('restingHeartRate') is None \
+            or data.get('minHeartRate') is None \
+            or data.get('maxHeartRate') is None:
             return
 
         # create metrics
         resting_heart_rate = self.gauge('resting_heart_rate', 'Resting heart rate')
+        heart_rate_resting = self.gauge('heart_rate_resting', 'Resting heart rate')
+        heart_rate_min = self.gauge('heart_rate_min', 'Minimum heart rate')
+        heart_rate_max = self.gauge('heart_rate_max', 'Maximum heart rate')
 
         # set metrics values
         resting_heart_rate.set(data['restingHeartRate'])
+        heart_rate_resting.set(data['restingHeartRate'])
+        heart_rate_min.set(data['minHeartRate'])
+        heart_rate_max.set(data['maxHeartRate'])
 
     def _steps(self, data):
         if data.get('totalSteps') is None \
