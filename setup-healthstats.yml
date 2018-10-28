@@ -36,8 +36,10 @@
         - 9091:9091
       restart_policy: always
 
-  - name: Copy health stats collector
-    copy: src=healthstats dest=$HOME
+  - name: Git clone health stats collector
+    git:
+      repo: https://github.com/waltzofpearls/healthstats-collector.git
+      dest: $HOME/healthstats
 
   - name: Build health stats docker image
     docker_image:
