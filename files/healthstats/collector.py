@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import sys
 import tempfile
 import time
@@ -7,6 +8,7 @@ import time
 from pathlib import Path
 
 from garmin_connect import GarminConnect
+from grafana_api import GrafanaAPI
 from prometheus_metrics import PrometheusMetrics
 
 
@@ -19,12 +21,16 @@ def main():
     home = str(Path.home())
     with open(home + '/.garmin') as f:
         creds = json.load(f)
+    os.environ['GARMIN_USERNAME'] = creds['u']
+    os.environ['GARMIN_PASSWORD'] = creds['p']
+    os.environ['GRAFANA_API_KEY'] = creds['g']
 
-    connect = GarminConnect(creds['tz'])
-    metrics = PrometheusMetrics()
+    connect = GarminConnect(logger)
+    metrics = PrometheusMetrics(logger)
+    grafana = GrafanaAPI(logger)
 
     logger.info('Logging in to garmin connect ...')
-    connect.login(creds['u'], creds['p'])
+    connect.login()
 
     logger.info('Downloading summary data ...')
     data = connect.get_summary()
@@ -40,6 +46,12 @@ def main():
 
     logger.info('Publishing metrics to Pushgateway ...')
     metrics.publish()
+
+    time.sleep(1)
+    logger.info('Downloading activities data ...')
+    data = connect.get_activities()
+    logger.info('Creating grafana annotations ...')
+    grafana.activities_as_annotations(data)
 
 
 if __name__ == '__main__':

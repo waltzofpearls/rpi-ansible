@@ -57,3 +57,4 @@
         PUSHGATEWAY: healthstats.rpi.topbass.studio:9091
         JOB_NAME: healthstats
         TIMEZONE: America/Vancouver
+        GRAFANA_API: http://grafana.rpi.topbass.studio:3000/api

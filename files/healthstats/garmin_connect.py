@@ -7,8 +7,6 @@ import re
 import requests
 import traceback
 
-from Fit import Conversions
-
 
 class GarminConnect():
     base_url = "https://connect.garmin.com"
@@ -26,6 +24,7 @@ class GarminConnect():
     wellness_url = modern_proxy_url + '/wellness-service/wellness'
     sleep_daily_url = wellness_url + '/dailySleepData'
     summary_url = modern_proxy_url + '/usersummary-service/usersummary/daily'
+    activities_url = modern_proxy_url + '/activitylist-service/activities/search/activities'
 
     def __init__(self, logger):
         self.logger = logger
@@ -33,6 +32,8 @@ class GarminConnect():
             sess=requests.session(),
             delay=15
         )
+        self.username = os.environ.get('GARMIN_USERNAME')
+        self.password = os.environ.get('GARMIN_PASSWORD')
         self.timezone = os.environ.get('TIMEZONE', 'UTC')
         self.localtime = self.to_localtime(datetime.datetime.now())
         self.formatted_date = self.localtime.strftime("%Y-%m-%d")
@@ -56,7 +57,7 @@ class GarminConnect():
             json_text = found.group(1).replace('\\"', '"')
             return json.loads(json_text)
 
-    def login(self, username, password):
+    def login(self):
         params = {
             'service': self.modern_url,
             'webhost': self.base_url,
@@ -81,8 +82,8 @@ class GarminConnect():
         }
         self.get(self.sso_login_url, params)
         data = {
-            'username': username,
-            'password': password,
+            'username': self.username,
+            'password': self.password,
             'embed': 'true',
             'lt': 'e1s1',
             '_eventId': 'submit',
@@ -238,3 +239,14 @@ class GarminConnect():
         except Exception as e:
             self.logger.error(traceback.format_exc())
         return {}
+
+    def get_activities(self):
+        try:
+            response = self.get(self.activities_url, {
+                'start': 0,
+                'limit': 10
+            })
+            return response.json()
+        except Exception as e:
+            self.logger.error(traceback.format_exc())
+        return []

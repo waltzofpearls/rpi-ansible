@@ -6,7 +6,8 @@ from prometheus_client import CollectorRegistry, Gauge, pushadd_to_gateway
 
 
 class PrometheusMetrics():
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
         self.registry = CollectorRegistry()
         self.pushgateway = os.environ.get('PUSHGATEWAY', 'localhost:9091')
         self.job_name = os.environ.get('JOB_NAME', 'healthstats')
@@ -15,23 +16,14 @@ class PrometheusMetrics():
     def summary(self, data):
         self._weight(data)
         self._heart_rate(data)
-
-        if 'durationInMilliseconds' in data \
-            and int(data['durationInMilliseconds']) >= 36000000:
-            # only sync when the current day past 10 hours
-            # 43200000 = 3600 * 10 * 1000
-            self._steps(data)
-            self._floors(data)
-            self._calories(data)
-
-        if 'durationInMilliseconds' in data \
-            and int(data['durationInMilliseconds']) >= 64800000:
-            # only sync when the current day past 18 hours
-            # 64800000 = 3600 * 18 * 1000
-            self._intensity_minutes(data)
+        self._intensity_minutes(data)
+        self._steps(data)
+        self._floors(data)
+        self._calories(data)
 
     def _weight(self, data):
         if data.get('weight') is None \
+            or data.get('weight') == 0 \
             or data.get('bodyFat') is None \
             or data.get('boneMass') is None \
             or data.get('bmi') is None \
@@ -149,9 +141,9 @@ class PrometheusMetrics():
         midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
         duration = (now - midnight).seconds
 
-        if duration < 36000:
-            # only sync when the day past 10 hours
-            # 36000 = 3600 * 10
+        if duration < 43200:
+            # only sync when the day past 12 hours
+            # 43200 = 3600 * 12
             return
 
         if data.get('sleepTimeSeconds') is None \
