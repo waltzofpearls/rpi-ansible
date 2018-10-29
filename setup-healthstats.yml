@@ -43,6 +43,8 @@
 
   - name: Build health stats docker image
     docker_image:
+      dockerfile: Dockerfile.cron.armv7hf
+      state: present
       path: $HOME/healthstats
       name: healthstats-rpi
       force: yes
@@ -52,11 +54,11 @@
       name: healthstats-rpi
       image: healthstats-rpi
       restart_policy: always
-      volumes:
-        - /root/.garmin:/root/.garmin
       env:
-        PYTHONPATH: /healthstats/Fit
         PUSHGATEWAY: healthstats.rpi.topbass.studio:9091
         JOB_NAME: healthstats
         TIMEZONE: America/Vancouver
         GRAFANA_API: http://grafana.rpi.topbass.studio:3000/api
+        GRAFANA_API_KEY: "{{ lookup('env', 'GRAFANA_API_KEY') }}"
+        GARMIN_USERNAME: "{{ lookup('env', 'GARMIN_USERNAME') }}"
+        GARMIN_PASSWORD: "{{ lookup('env', 'GARMIN_PASSWORD') }}"
