@@ -2,14 +2,18 @@
   "annotations": {
     "list": [
       {
-        "$$hashKey": "object:1212",
         "builtIn": 1,
         "datasource": "-- Grafana --",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
+        "limit": 100,
         "name": "Annotations & Alerts",
-        "type": "dashboard"
+        "showIn": 0,
+        "tags": [
+          "healthstats"
+        ],
+        "type": "tags"
       }
     ]
   },
@@ -160,7 +164,6 @@
       "tableColumn": "",
       "targets": [
         {
-          "$$hashKey": "object:757",
           "expr": "floor(floors_ascended)",
           "format": "time_series",
           "intervalFactor": 1,
@@ -190,7 +193,7 @@
         "#d44a3a"
       ],
       "datasource": "prometheus-rpi",
-      "format": "none",
+      "format": "m",
       "gauge": {
         "maxValue": 200,
         "minValue": 0,
@@ -241,7 +244,6 @@
       "tableColumn": "",
       "targets": [
         {
-          "$$hashKey": "object:757",
           "expr": "intensity_minutes_moderate + intensity_minutes_vigorous * 2",
           "format": "time_series",
           "intervalFactor": 1,
@@ -567,7 +569,6 @@
       "tableColumn": "",
       "targets": [
         {
-          "$$hashKey": "object:1062",
           "expr": "calories",
           "format": "time_series",
           "intervalFactor": 1,
@@ -838,7 +839,7 @@
         "#d44a3a"
       ],
       "datasource": "prometheus-rpi",
-      "format": "dateTimeFromNow",
+      "format": "dateTimeAsUS",
       "gauge": {
         "maxValue": 100,
         "minValue": 0,
@@ -892,6 +893,88 @@
           "expr": "floor(push_time_seconds) * 1000",
           "format": "time_series",
           "intervalFactor": 1,
+          "legendFormat": "last sync time",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "title": "last sync time",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": "prometheus-rpi",
+      "format": "dateTimeFromNow",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 20,
+        "y": 3
+      },
+      "id": 54,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "floor(push_time_seconds) * 1000",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "last sync time",
           "refId": "A"
         }
       ],
@@ -990,7 +1073,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": "95",
+          "min": "100",
           "show": true
         },
         {
@@ -1075,7 +1158,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": "25",
+          "min": "30",
           "show": true
         },
         {
@@ -1162,7 +1245,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": "30",
+          "min": "36",
           "show": true
         },
         {
@@ -1247,7 +1330,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": "35",
+          "min": "46",
           "show": true
         },
         {
@@ -1315,7 +1398,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "$$hashKey": "object:1577",
           "expr": "steps",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1323,7 +1405,6 @@
           "refId": "A"
         },
         {
-          "$$hashKey": "object:1578",
           "expr": "steps_daily_goal",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1350,7 +1431,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:1700",
           "format": "none",
           "label": null,
           "logBase": 1,
@@ -1359,7 +1439,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:1701",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -1410,7 +1489,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "$$hashKey": "object:1577",
           "expr": "calories",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1418,7 +1496,6 @@
           "refId": "A"
         },
         {
-          "$$hashKey": "object:1578",
           "expr": "calories_active",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1426,7 +1503,6 @@
           "refId": "B"
         },
         {
-          "$$hashKey": "object:1579",
           "expr": "calories_resting",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1453,7 +1529,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:1700",
           "format": "none",
           "label": null,
           "logBase": 1,
@@ -1462,7 +1537,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:1701",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -1513,7 +1587,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "$$hashKey": "object:1577",
           "expr": "intensity_minutes_moderate + intensity_minutes_vigorous * 2",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1521,7 +1594,6 @@
           "refId": "A"
         },
         {
-          "$$hashKey": "object:1578",
           "expr": "intensity_minutes_moderate",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1529,7 +1601,6 @@
           "refId": "B"
         },
         {
-          "$$hashKey": "object:1579",
           "expr": "intensity_minutes_vigorous",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1556,7 +1627,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:1700",
           "format": "m",
           "label": null,
           "logBase": 1,
@@ -1565,7 +1635,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:1701",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -1734,7 +1803,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "$$hashKey": "object:2120",
           "expr": "active_seconds",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1742,7 +1810,6 @@
           "refId": "A"
         },
         {
-          "$$hashKey": "object:2182",
           "expr": "sedentary_seconds",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1769,7 +1836,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:2271",
           "format": "s",
           "label": null,
           "logBase": 1,
@@ -1778,7 +1844,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:2272",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -1859,7 +1924,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": "20",
+          "min": "0",
           "show": true
         },
         {
@@ -1885,7 +1950,7 @@
     "list": []
   },
   "time": {
-    "from": "now-5d",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {
@@ -1916,5 +1981,5 @@
   "timezone": "",
   "title": "Rivendell",
   "uid": "sNRfs7mRk",
-  "version": 31
+  "version": 37
 }
