@@ -48,6 +48,18 @@
   - name: Make sure node exporter is running
     systemd: state=started name=node_exporter enabled=yes
 
+  - name: Stop docker service
+    systemd: state=stopped name=docker
+
+  - name: Remove docker package
+    apt: name=docker state=absent purge=yes force=yes force_apt_get=yes
+
+  - name: Clean up apt docker-engine package
+    apt: autoremove=yes force_apt_get=yes
+
+  - name: Remove /var/lib/docker
+    file: path=/var/lib/docker state=absent
+
   - name: Download docker installer
     get_url: url=https://get.docker.com dest=/tmp/docker_installer.sh mode=0755
 
@@ -56,6 +68,9 @@
 
   - name: Remove the docker_installer.sh
     file: path=/tmp/docker_installer.sh state=absent
+
+  - name: Start docker service
+    systemd: state=started name=docker enabled=yes
 
   - name: Add pi user to docker group
     user:
