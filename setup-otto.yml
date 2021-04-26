@@ -1,0 +1,47 @@
+- name: Set up otto
+  hosts: otto
+  gather_facts: false
+
+  tasks:
+  - name: Ensure otto folder exists
+    file:
+      path: $HOME/otto
+      state: directory
+
+  - name: Download ARMv7 Prometheus
+    unarchive:
+      src: https://github.com/waltzofpearls/otto/releases/download/v0.7.0/otto-armv7-unknown-linux-gnueabihf-0.7.0.tar.gz
+      dest: $HOME/otto
+      remote_src: yes
+
+  - name: Tempate otto config
+    template:
+      src: otto/otto.toml.j2
+      dest: $HOME/otto/otto.toml
+
+  - name: Copy otto Dockerfile
+    copy:
+      src: "{{ item }}"
+      dest: $HOME/otto/
+      owner: pi
+      mode: 0644
+    with_fileglob:
+      - otto/*
+
+  - name: Build otto docker image
+    docker_image:
+      build:
+        path: $HOME/otto
+      name: otto-rpi
+      source: build
+
+  - name: Run otto as a docker container
+    docker_container:
+      name: otto-rpi
+      image: otto-rpi
+      restart: yes
+      ports:
+        - "9999:9999"
+      restart_policy: always
+      volumes:
+        - /home/pi/otto:/otto
