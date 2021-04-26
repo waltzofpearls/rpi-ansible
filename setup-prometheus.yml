@@ -26,15 +26,18 @@
 
   - name: Build Prometheus docker image
     docker_image:
-       path: $HOME/prometheus
-       name: prometheus-rpi
+      build:
+        path: $HOME/prometheus
+      name: prometheus-rpi
+      source: build
 
   - name: Run Prometheus as a docker container
     docker_container:
       name: prometheus-rpi
       image: prometheus-rpi
-      published_ports:
-        - 9090:9090
+      restart: yes
+      ports:
+        - "9090:9090"
       restart_policy: always
       volumes:
         - /home/pi/prometheus:/prometheus

@@ -7,7 +7,16 @@ grafana.rpi.topbass.studio
 healthstats.rpi.topbass.studio
 sensehat.rpi.topbass.studio
 dogwatchdog.rpi.topbass.studio
-plex.rpi.topbass.studio
+otto.rpi.topbass.studio
+reckon.rpi.topbass.studio
+
+[cluster]
+prometheus.rpi.topbass.studio
+grafana.rpi.topbass.studio
+healthstats.rpi.topbass.studio
+sensehat.rpi.topbass.studio
+otto.rpi.topbass.studio
+reckon.rpi.topbass.studio
 
 [prometheus]
 prometheus.rpi.topbass.studio
@@ -27,5 +36,8 @@ dogwatchdog.rpi.topbass.studio
 [rover]
 rover.rpi.topbass.studio
 
-[plex]
-plex.rpi.topbass.studio
+[otto]
+otto.rpi.topbass.studio
+
+[reckon]
+reckon.rpi.topbass.studio
