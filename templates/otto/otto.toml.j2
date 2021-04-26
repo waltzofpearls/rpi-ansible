@@ -1,0 +1,35 @@
+schedule = "0 * * * * *"
+path_to_store = "/otto/data"
+
+[prometheus]
+listen = "0.0.0.0:9999"
+path = "metrics"
+
+[[probes.atom]]
+schedule = "0 * * * * *"
+feed_url = "https://feeds.feedburner.com/herokustatus"
+title_regex = "^(?!.*Resolved).*"
+
+[[probes.atom]]
+schedule = "0 * * * * *"
+feed_url = "https://www.cloudflarestatus.com/history.atom"
+content_regex = "^(?=.*Investigating)(?!.*Resolved).*"
+
+[[probes.rss]]
+schedule = "0 * * * * *"
+feed_url = "https://www.githubstatus.com/history.rss"
+description_regex = "^(?=.*Investigating)(?!.*Resolved).*"
+#description_regex = "^(?=.*Investigating).*"
+
+[[alerts.slack]]
+webhook_url = "{{ lookup('env', 'SLACK_WEBHOOK_URL') }}"
+
+[[alerts.email]]
+smtp_relay = "smtp.gmail.com"
+smtp_username = "{{ lookup('env', 'SMTP_USERNAME') }}"
+smtp_password = "{{ lookup('env', 'SMTP_PASSWORD') }}"
+from = "Otto Pi <otto@ottobot.io>"
+to = "Rollie Ma <maruolei@gmail.com>"
+
+[[alerts.discord]]
+webhook_url = "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"

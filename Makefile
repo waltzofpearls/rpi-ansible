@@ -17,3 +17,6 @@ prometheus:
 
 sensehat:
 	$(ansible) setup-sensehat.yml
+
+otto:
+	@env $(shell cat .otto.env | xargs) $(ansible) setup-otto.yml

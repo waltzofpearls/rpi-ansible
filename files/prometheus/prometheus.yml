@@ -56,6 +56,10 @@ scrape_configs:
     static_configs:
       - targets: ['otto.rpi.topbass.studio:9100']
 
+  - job_name: 'otto_exporter'
+    static_configs:
+      - targets: ['otto.rpi.topbass.studio:9999']
+
   - job_name: 'sensehat_exporter'
     metrics_path: /
     static_configs:
