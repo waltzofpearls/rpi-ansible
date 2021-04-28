@@ -25,16 +25,19 @@
 
   - name: Build Pushgateway docker image
     docker_image:
-       path: $HOME/pushgateway
-       name: pushgateway-rpi
+      build:
+        path: $HOME/pushgateway
+      name: pushgateway-rpi
+      source: build
 
   - name: Run Pushgateway as a docker container
     docker_container:
       name: pushgateway-rpi
       image: pushgateway-rpi
-      published_ports:
+      ports:
         - 9091:9091
       restart_policy: always
+      restart: yes
 
   - name: Git clone health stats collector
     git:
@@ -43,17 +46,19 @@
 
   - name: Build health stats docker image
     docker_image:
-      dockerfile: Dockerfile.cron.armv7hf
-      state: present
-      path: $HOME/healthstats
+      build:
+        dockerfile: Dockerfile.cron.armv7hf
+        path: $HOME/healthstats
       name: healthstats-rpi
-      force: yes
+      source: build
+      force_source: yes
 
   - name: Run health stats as a docker container
     docker_container:
       name: healthstats-rpi
       image: healthstats-rpi
       restart_policy: always
+      restart: yes
       env:
         PUSHGATEWAY: healthstats.rpi.topbass.studio:9091
         JOB_NAME: healthstats
