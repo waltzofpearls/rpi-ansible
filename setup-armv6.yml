@@ -1,0 +1,72 @@
+---
+- name: Install dependencies for ARMv6 pi's
+  hosts: "{{ host | default('armv6') }}"
+  become: true
+  gather_facts: false
+
+  tasks:
+  - name: Install ARMv6 node exporter
+    unarchive:
+      src: https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-armv6.tar.gz
+      dest: /usr/local/bin
+      extra_opts: [--strip-components=1]
+      remote_src: yes
+
+- name: Set up general packages and dependencies for all pi's
+  hosts: "{{ host | default('armv6') }}"
+  become: true
+  gather_facts: false
+
+  tasks:
+  - name: Update apt repositories cache and install packages
+    apt:
+      name: "{{ packages }}"
+      update_cache: yes
+    vars:
+      packages:
+      - git
+      - vim
+      - python-pip
+      - python3-pip
+
+  - name: Install node exporter systemd unit file
+    copy: src=node_exporter.service dest=/etc/systemd/system/node_exporter.service
+
+  - name: Make sure node exporter is running
+    systemd: state=started name=node_exporter enabled=yes
+
+  - name: Remove docker package
+    apt: name=docker state=absent purge=yes force=yes force_apt_get=yes
+
+  - name: Clean up apt docker-engine package
+    apt: autoremove=yes force_apt_get=yes
+
+  - name: Remove /var/lib/docker and /usr/share/keyrings/docker-archive-keyring.gpg
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+    - /var/lib/docker
+    - /usr/share/keyrings/docker-archive-keyring.gpg
+
+  - name: Download docker installer
+    get_url: url=https://get.docker.com dest=/tmp/docker_installer.sh mode=0755
+
+  - name: Execute the docker_installer.sh
+    shell: /tmp/docker_installer.sh
+
+  - name: Remove the docker_installer.sh
+    file: path=/tmp/docker_installer.sh state=absent
+
+  - name: Start docker service
+    systemd: state=started name=docker enabled=yes
+
+  - name: Add pi user to docker group
+    user:
+      name: pi
+      groups: docker
+      append: yes
+
+  - name: Install docker python module
+    pip:
+      name: docker

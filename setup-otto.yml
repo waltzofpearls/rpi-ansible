@@ -8,13 +8,13 @@
       path: $HOME/otto
       state: directory
 
-  - name: Download ARMv7 Prometheus
+  - name: Download ARMv7 Otto
     unarchive:
       src: https://github.com/waltzofpearls/otto/releases/download/v0.7.0/otto-armv7-unknown-linux-gnueabihf-0.7.0.tar.gz
       dest: $HOME/otto
       remote_src: yes
 
-  - name: Tempate otto config
+  - name: Template otto config
     template:
       src: otto/otto.toml.j2
       dest: $HOME/otto/otto.toml
