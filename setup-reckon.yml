@@ -5,7 +5,7 @@
   tasks:
   - name: Download ARMv7 reckon
     unarchive:
-      src: https://github.com/waltzofpearls/reckon/releases/download/v0.1.0/reckon_0.1.0_linux_arm.tar.gz
+      src: https://github.com/waltzofpearls/reckon/releases/download/v0.4.0/reckon_0.4.0_linux_arm.tar.gz
       dest: $HOME
       remote_src: yes
 
@@ -15,7 +15,7 @@
       path: $HOME/reckon
 
   - name: Rename unarchived folder to reckon
-    command: mv -Tn $HOME/reckon_0.1.0_linux_arm $HOME/reckon
+    command: mv -Tn $HOME/reckon_0.4.0_linux_arm $HOME/reckon
 
   - name: Copy reckon Dockerfile
     copy:
@@ -27,11 +27,7 @@
       - reckon/*
 
   - name: Build reckon docker image
-    docker_image:
-      build:
-        path: $HOME/reckon
-      name: reckon-rpi
-      source: build
+    command: docker build -t reckon-rpi $HOME/reckon
 
   - name: Run reckon as a docker container
     docker_container:
@@ -46,6 +42,5 @@
         TIMEZONE: America/Vancouver
         PROM_EXPORTER_ADDR: :9999
         PROM_CLIENT_URL: http://prometheus.rpi.topbass.studio:9090
-        WATCH_LIST: sensehat_temperature,sensehat_humidity
-        MODELS: Prophet
+        WATCH_LIST: "{sensehat_temperature: [Prophet], sensehat_humidity: [Prophet], sensehat_pressure: [Prophet]}"
         ROLLING_WINDOW: 72h
