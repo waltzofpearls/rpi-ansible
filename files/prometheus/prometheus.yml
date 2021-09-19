@@ -52,6 +52,10 @@ scrape_configs:
     static_configs:
       - targets: ['reckon.rpi.topbass.studio:9100']
 
+  - job_name: 'reckon_exporter'
+    static_configs:
+      - targets: ['reckon.rpi.topbass.studio:9999']
+
   - job_name: 'otto.node_exporter'
     static_configs:
       - targets: ['otto.rpi.topbass.studio:9100']
