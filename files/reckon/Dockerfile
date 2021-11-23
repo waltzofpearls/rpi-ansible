@@ -1,4 +1,4 @@
-FROM arm32v7/python:3.7.11-slim-buster
+FROM arm32v7/python:3.7.12-slim-buster
 RUN apt-get update; \
     apt-get install -y --no-install-recommends \
         g++ \
