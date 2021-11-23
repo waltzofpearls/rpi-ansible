@@ -5,7 +5,7 @@
   tasks:
   - name: Download ARMv7 reckon
     unarchive:
-      src: https://github.com/waltzofpearls/reckon/releases/download/v0.4.0/reckon_0.4.0_linux_arm.tar.gz
+      src: https://github.com/waltzofpearls/reckon/releases/download/v0.5.1/reckon_0.5.1_linux_arm.tar.gz
       dest: $HOME
       remote_src: yes
 
@@ -15,7 +15,7 @@
       path: $HOME/reckon
 
   - name: Rename unarchived folder to reckon
-    command: mv -Tn $HOME/reckon_0.4.0_linux_arm $HOME/reckon
+    command: mv -Tn $HOME/reckon_0.5.1_linux_arm $HOME/reckon
 
   - name: Copy reckon Dockerfile
     copy:
@@ -44,3 +44,9 @@
         PROM_CLIENT_URL: http://prometheus.rpi.topbass.studio:9090
         WATCH_LIST: "{sensehat_temperature: [Prophet], sensehat_humidity: [Prophet], sensehat_pressure: [Prophet]}"
         ROLLING_WINDOW: 72h
+        GRPC_SERVER_ADDRESS: localhost:18443
+        GRPC_ROOT_CA: "{{ lookup('file', 'cert/gRPC_Root_CA.crt') }}"
+        GRPC_SERVER_CERT: "{{ lookup('file', 'cert/localhost.crt') }}"
+        GRPC_SERVER_KEY: "{{ lookup('file', 'cert/localhost.key') }}"
+        GRPC_CLIENT_CERT: "{{ lookup('file', 'cert/grpc_client.crt') }}"
+        GRPC_CLIENT_KEY: "{{ lookup('file', 'cert/grpc_client.key') }}"
