@@ -5,7 +5,7 @@
   tasks:
   - name: Download ARMv7 reckon
     unarchive:
-      src: https://github.com/waltzofpearls/reckon/releases/download/v0.5.1/reckon_0.5.1_linux_arm.tar.gz
+      src: https://github.com/waltzofpearls/reckon/releases/download/v0.5.2/reckon_0.5.2_linux_arm.tar.gz
       dest: $HOME
       remote_src: yes
 
@@ -15,7 +15,7 @@
       path: $HOME/reckon
 
   - name: Rename unarchived folder to reckon
-    command: mv -Tn $HOME/reckon_0.5.1_linux_arm $HOME/reckon
+    command: mv -Tn $HOME/reckon_0.5.2_linux_arm $HOME/reckon
 
   - name: Copy reckon Dockerfile
     copy:
