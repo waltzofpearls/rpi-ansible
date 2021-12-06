@@ -1,0 +1,4 @@
+[submodule "k3s"]
+	path = k3s
+	url = git@github.com:waltzofpearls/k3s-ansible.git
+	branch = waltzofpearls
