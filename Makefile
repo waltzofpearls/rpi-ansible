@@ -49,3 +49,14 @@ cert:
 	certstrap --depot-path cert sign --CA "gRPC Root CA" localhost
 	certstrap --depot-path cert sign --CA "gRPC Root CA" grpc_client
 	@tree -hrC cert
+
+.PHONY: k3s
+k3s: | update-submodule install-k3s
+	mkdir -p ~/.kube
+	scp pi@k3s-one.rpi.topbass.studio:~/.kube/config ~/.kube/config
+
+update-submodule:
+	git submodule update --recursive
+
+install-k3s:
+	$(ansible) k3s/site.yml -i k3s/inventory/gondor/hosts.ini
