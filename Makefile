@@ -20,7 +20,7 @@ grafana:
 
 .PHONY: healthstats
 healthstats:
-	@env $(shell cat .healthstats.env | xargs) $(ansible) setup-healthstats.yml
+	@env - `cat .healthstats.env` $(ansible) setup-healthstats.yml
 
 .PHONY: prometheus
 prometheus:
@@ -32,7 +32,7 @@ sensehat:
 
 .PHONY: otto
 otto:
-	@env $(shell cat .otto.env | xargs) $(ansible) setup-otto.yml
+	@env - `cat .otto.env` $(ansible) setup-otto.yml
 
 .PHONY: reckon
 reckon: cert
