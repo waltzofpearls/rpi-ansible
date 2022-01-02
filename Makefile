@@ -20,7 +20,7 @@ grafana:
 
 .PHONY: healthstats
 healthstats:
-	@env - `cat .healthstats.env` $(ansible) setup-healthstats.yml
+	@env `cat .healthstats.env` $(ansible) setup-healthstats.yml
 
 .PHONY: prometheus
 prometheus:
@@ -32,7 +32,7 @@ sensehat:
 
 .PHONY: otto
 otto:
-	@env - `cat .otto.env` $(ansible) setup-otto.yml
+	@env `cat .otto.env` $(ansible) setup-otto.yml
 
 .PHONY: reckon
 reckon: cert
@@ -51,9 +51,13 @@ cert:
 	@tree -hrC cert
 
 .PHONY: k3s
-k3s: | update-submodule install-k3s
+k3s:
+	@env `cat .k3s.env` $(ansible) setup-k3s.yml
+
+k3s-everything: | update-submodule install-k3s
 	mkdir -p ~/.kube
 	scp pi@k3s-one.rpi.topbass.studio:~/.kube/config ~/.kube/config
+	make k3s
 
 update-submodule:
 	git submodule update --recursive
