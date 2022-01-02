@@ -42,3 +42,8 @@ otto.rpi.topbass.studio
 
 [reckon]
 reckon.rpi.topbass.studio
+
+[k3s]
+k3s-one.rpi.topbass.studio
+k3s-two.rpi.topbass.studio
+k3s-three.rpi.topbass.studio

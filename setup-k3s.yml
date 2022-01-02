@@ -1,0 +1,31 @@
+- name: Set up k3s
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  tasks:
+  - name: Create a namespace
+    k8s:
+      name: monitoring
+      api_version: v1
+      kind: Namespace
+      state: present
+
+  - name: Deploy grafana agent resources
+    k8s:
+      state: present
+      namespace: monitoring
+      definition: "{{ lookup('template', 'k3s/grafana/agent-bare.yaml.j2') | from_yaml_all }}"
+    vars:
+      namespace: monitoring
+
+  - name: Configure grafana agent
+    k8s:
+      state: present
+      namespace: monitoring
+      definition: "{{ lookup('template', 'k3s/grafana/agent-config.yaml.j2') | from_yaml_all }}"
+    vars:
+      cluster_name: k3s.rpi
+
+  - name: Restart the grafana agent
+    shell: kubectl rollout restart deployment/grafana-agent --namespace monitoring
